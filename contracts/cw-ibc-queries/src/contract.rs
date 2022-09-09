@@ -1,13 +1,12 @@
+use crate::error::ContractError;
+use crate::msg::{ExecuteMsg, InstantiateMsg};
+use crate::state::PACKET_LIFETIME;
 use cosmwasm_std::{
     entry_point, to_binary, DepsMut, Empty, Env, IbcMsg, MessageInfo, QueryRequest, Response,
     StdResult,
 };
-
 use cw_ibc_query::PacketMsg;
-
-use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, InstantiateMsg};
-use crate::state::PACKET_LIFETIME;
+use schemars::_private::NoSerialize;
 
 #[entry_point]
 pub fn instantiate(
@@ -27,7 +26,7 @@ pub fn execute(
     info: MessageInfo,
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
-    cw_utils::nonpayable(&info)?;
+    //cw_utils::nonpayable(&info)?;
     match msg {
         ExecuteMsg::IbcQuery {
             channel_id,
@@ -40,7 +39,7 @@ pub fn execute(
 pub fn execute_ibc_query(
     deps: DepsMut,
     env: Env,
-    _info: MessageInfo,
+    info: MessageInfo,
     channel_id: String,
     msgs: Vec<QueryRequest<Empty>>,
     callback: String,
@@ -49,9 +48,12 @@ pub fn execute_ibc_query(
     deps.api.addr_validate(&callback)?;
 
     // construct a packet to send
-    let packet = PacketMsg::IbcQuery { msgs, callback };
+    let packet = PacketMsg::IbcQuery {
+        msgs: msgs,
+        callback: callback,
+    };
     let msg = IbcMsg::SendPacket {
-        channel_id,
+        channel_id: channel_id,
         data: to_binary(&packet)?,
         timeout: env
             .block
@@ -60,10 +62,7 @@ pub fn execute_ibc_query(
             .into(),
     };
 
-    let res = Response::new()
-        .add_message(msg)
-        .add_attribute("action", "handle_check_remote_balance");
-    Ok(res)
+    Ok(Response::new().add_attribute("execute", "handle_query_remote_balance"))
 }
 
 #[cfg(test)]
