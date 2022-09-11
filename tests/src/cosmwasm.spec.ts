@@ -38,7 +38,7 @@ test.serial("set up channel with ibc-queries contract", async (t) => {
   const { contractAddress: wasmCont } = await wasmClient.sign.instantiate(
     wasmClient.senderAddress,
     wasmIds.querier,
-    {},
+    { packet_lifetime: 100 },
     "simple querier",
     "auto"
   );
@@ -47,12 +47,12 @@ test.serial("set up channel with ibc-queries contract", async (t) => {
   t.log(`Querier Port: ${wasmQuerierPort}`);
   assert(wasmQuerierPort);
 
-  // instantiate ica querier on osmosis
+  // instantiate cw-ibc-queries on osmosis
   const osmoClient = await setupOsmosisClient();
   const { contractAddress: osmoQuerier } = await osmoClient.sign.instantiate(
     osmoClient.senderAddress,
     osmosisIds.querier,
-    {},
+    { packet_lifetime: 100 },
     "simple querier",
     "auto"
   );
@@ -89,7 +89,7 @@ async function demoSetup(): Promise<SetupInfo> {
   const { contractAddress: wasmQuerier } = await wasmClient.sign.instantiate(
     wasmClient.senderAddress,
     wasmIds.querier,
-    {},
+    { packet_lifetime: 100 },
     "IBC Queries contract",
     "auto"
   );
@@ -106,19 +106,19 @@ async function demoSetup(): Promise<SetupInfo> {
   );
   assert(wasmQueryReceiver);
 
-  // instantiate ica querier on osmosis
+  // instantiate ibc queries on osmosis
   const osmoClient = await setupOsmosisClient();
   const { contractAddress: osmoQuerier } = await osmoClient.sign.instantiate(
     osmoClient.senderAddress,
     osmosisIds.querier,
-    {},
+    { packet_lifetime: 100 },
     "IBC Queries contract",
     "auto"
   );
   const { ibcPortId: osmoQuerierPort } = await osmoClient.sign.getContract(osmoQuerier);
   assert(osmoQuerierPort);
 
-  // create a connection and channel for simple-ica
+  // create a connection and channel for simple-ibc-query
   const [src, dest] = await setup(wasmd, osmosis);
   const link = await Link.createWithNewConnections(src, dest);
   const channelInfo = await link.createChannel(
@@ -190,7 +190,11 @@ test.serial("query remote chain", async (t) => {
     },
   });
 
-  console.log(result);
+  console.log("RESULT: ", result);
+
+  //query if relayer wallet got the funds
+  //let relayer_balance = await wasmClient.sign.getBalance(result.response.relayer, DENOM);
+
   console.log(fromUtf8(fromBase64(result.response.acknowledgement.data)));
   t.truthy(result);
 });

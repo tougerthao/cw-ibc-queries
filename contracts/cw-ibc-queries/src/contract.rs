@@ -26,7 +26,7 @@ pub fn execute(
     info: MessageInfo,
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
-    //cw_utils::nonpayable(&info)?;
+    cw_utils::nonpayable(&info)?;
     match msg {
         ExecuteMsg::IbcQuery {
             channel_id,
@@ -39,7 +39,7 @@ pub fn execute(
 pub fn execute_ibc_query(
     deps: DepsMut,
     env: Env,
-    info: MessageInfo,
+    _info: MessageInfo,
     channel_id: String,
     msgs: Vec<QueryRequest<Empty>>,
     callback: String,
@@ -62,7 +62,9 @@ pub fn execute_ibc_query(
             .into(),
     };
 
-    Ok(Response::new().add_attribute("execute", "handle_query_remote_balance"))
+    Ok(Response::new()
+        .add_attribute("execute", "handle_query_remote_balance")
+        .add_message(msg))
 }
 
 #[cfg(test)]
